@@ -32,6 +32,15 @@ public class WebGeneralActions extends BasePage {
         passStep("Cookie added to driver with name '" + name + "' and value '" + value + "'");
     }
 
+    public void AddADifferentCookie(String name, String value)
+    {
+        Cookie cookie = new Cookie(name, value);
+        m_Driver.manage().addCookie(cookie);
+
+        passStep("Cookie added to driver with name '" + name + "' and value '" + value + "'");
+    }
+
+
     /**
      * Verifies that an alert is present.
      * @name Alert Should Be Present
