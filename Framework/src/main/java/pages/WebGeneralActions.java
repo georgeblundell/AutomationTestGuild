@@ -27,6 +27,7 @@ public class WebGeneralActions extends BasePage {
     public void AddCookie(String name, String value)
     {
         Cookie cookie = new Cookie(name, value);
+        //synchronise this code change
         m_Driver.manage().addCookie(cookie);
 
         passStep("Cookie added to driver with name '" + name + "' and value '" + value + "'");
