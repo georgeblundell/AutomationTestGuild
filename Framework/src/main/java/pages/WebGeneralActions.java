@@ -1,30 +1,67 @@
 package pages;
-
-import ie.curiositysoftware.testmodeller.TestModellerIgnore;
-import org.openqa.selenium.*;
-import org.openqa.selenium.interactions.Actions;
-import org.openqa.selenium.support.ui.ExpectedConditions;
+import pages.BasePage;
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.Select;
-import org.openqa.selenium.support.ui.WebDriverWait;
-import utilities.CapabilityLoader;
-
-import java.time.Duration;
+import org.openqa.selenium.interactions.Actions;
+import org.testng.Assert;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+import ie.curiositysoftware.testmodeller.TestModellerModule;
+import utilities.reports.ExtentReportManager;
+import utilities.testmodeller.TestModellerLogger;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import org.openqa.selenium.JavascriptExecutor;
 
-public class WebGeneralActions extends BasePage {
-    @TestModellerIgnore
-    public WebGeneralActions(WebDriver driver) {
-        super(driver);
+import io.restassured.RestAssured;
+import io.restassured.http.ContentType;
+import io.restassured.response.Response;
+import io.restassured.specification.RequestSpecification;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-        SetBrowserType( "chrome");
+import com.jayway.jsonpath.JsonPath;
+
+// https://internalcsitraining.cloud.testinsights.io/app/#!/module-collection/guid/176e0e25-5856-4f07-a2a6-3e7a36b164a5
+@TestModellerModule(guid = "176e0e25-5856-4f07-a2a6-3e7a36b164a5")
+public class WebGeneralActions extends BasePage
+{
+	public WebGeneralActions (WebDriver driver)
+	{
+		super(driver);
+	}
+
+
+
+
+	
+public void AcceptAlert()
+    {
+        try  {
+            m_Driver.switchTo().alert().accept();
+
+            passStepWithScreenshot("Accepted alert");
+        }  catch (NoAlertPresentException Ex)  {
+            failStep("Alert is not present");
+        }
     }
 
-    /**
-     * Adds a cookie to your current session.
-     * @name Add Cookie
-     */
-    public void AddCookie(String name, String value)
+public void AddADifferentCookie(String name, String value)
+    {
+        Cookie cookie = new Cookie(name, value);
+        m_Driver.manage().addCookie(cookie);
+
+        passStep("Cookie added to driver with name '" + name + "' and value '" + value + "'");
+    }
+
+public void AddCapability(String capabilityName, String value)
+    {
+        CapabilityLoader.addCapability(capabilityName, value);
+    }
+
+public void AddCookie(String name, String value)
     {
         Cookie cookie = new Cookie(name, value);
         // this is a code change
@@ -33,51 +70,7 @@ public class WebGeneralActions extends BasePage {
         passStep("Cookie added to driver with name '" + name + "' and value '" + value + "'");
     }
 
-    public void AddADifferentCookie(String name, String value)
-    {
-        Cookie cookie = new Cookie(name, value);
-        m_Driver.manage().addCookie(cookie);
-
-        passStep("Cookie added to driver with name '" + name + "' and value '" + value + "'");
-    }
-
-
-    /**
-     * Verifies that an alert is present.
-     * @name Alert Should Be Present
-     */
-    public void AlertShouldBePresent()
-    {
-        try  {
-            m_Driver.switchTo().alert();
-
-            passStepWithScreenshot("Alert is present");
-        }  catch (NoAlertPresentException Ex)  {
-            failStep("Alert is not present");
-        }
-    }
-
-    /**
-     * Verifies that no alert is present.
-     * @name Alert Should Not Be Present
-     */
-    public void AlertShouldNotBePresent()
-    {
-        try  {
-            m_Driver.switchTo().alert();
-
-            failStep("Alert is present");
-        }  catch (NoAlertPresentException Ex)  {
-            passStepWithScreenshot("Alert is not present");
-        }
-
-    }
-
-    /**
-     * Verifies that an alert is present and contains the specified text.
-     * @name Alert Assert Text
-     */
-    public void AssertAlertText(String text)
+public void AssertAlertText(String text)
     {
         try  {
             String alertText = m_Driver.switchTo().alert().getText();
@@ -93,11 +86,48 @@ public class WebGeneralActions extends BasePage {
         }
     }
 
-    /**
-     * Verifies checkbox locator is selected/checked.
-     * @name Checkbox Should Be Selected
-     */
-    public void CheckboxShouldBeSelected(String objectLocator)
+public void AlertShouldBePresent()
+    {
+        try  {
+            m_Driver.switchTo().alert();
+
+            passStepWithScreenshot("Alert is present");
+        }  catch (NoAlertPresentException Ex)  {
+            failStep("Alert is not present");
+        }
+    }
+
+public void AlertShouldNotBePresent()
+    {
+        try  {
+            m_Driver.switchTo().alert();
+
+            failStep("Alert is present");
+        }  catch (NoAlertPresentException Ex)  {
+            passStepWithScreenshot("Alert is not present");
+        }
+
+    }
+
+public void CurrentFrameShouldContain(String text)
+    {
+        if (m_Driver.getPageSource().contains(text)) {
+            passStepWithScreenshot("Current Frame Contains '" + text + "'");
+        } else {
+            failStep("Current frame does not contain '" + text + "'");
+        }
+    }
+
+public void CurrentFrameShouldNotContain(String text)
+    {
+        if (!m_Driver.getPageSource().contains(text)) {
+            passStepWithScreenshot("Current frame does not contain '" + text + "'");
+        } else {
+            failStep("Current frame contains '" + text + "'");
+        }
+    }
+
+public void CheckboxShouldBeSelected(String objectLocator)
     {
         WebElement elem = getWebElement(getLocatorFromString(objectLocator));
         if (elem == null) {
@@ -111,11 +141,7 @@ public class WebGeneralActions extends BasePage {
         }
     }
 
-    /**
-     * Verifies checkbox locator is not selected/checked.
-     * @name Checkbox Should Not Be Selected
-     */
-    public void CheckboxShouldNotBeSelected(String objectLocator)
+public void CheckboxShouldNotBeSelected(String objectLocator)
     {
         WebElement elem = getWebElement(getLocatorFromString(objectLocator));
         if (elem == null) {
@@ -129,11 +155,7 @@ public class WebGeneralActions extends BasePage {
         }
     }
 
-    /**
-     * Clears the value of the text-input-element identified by locator.
-     * @name Clear Element Text
-     */
-    public void ClearElementText(String objectLocator)
+public void ClearElementText(String objectLocator)
     {
         WebElement elem = getWebElement(getLocatorFromString(objectLocator));
         if (elem == null) {
@@ -145,42 +167,34 @@ public class WebGeneralActions extends BasePage {
         passStepWithScreenshot("Clear Element Text");
     }
 
-    /**
-     * Sets the browser type
-     * @name Set Browser Name (chrome, firefox, Safari)
-     */
-    public void SetBrowserType(String platformName)
+public void Click(String objectLocator)
     {
-        AddCapability("browserName", platformName);
+        WebElement elem = getWebElement(getLocatorFromString(objectLocator));
+
+        if (elem == null) {
+            failStep("Click", "Click failed. Unable to locate object: " + objectLocator);
+        }
+
+        elem.click();
+
+        passStepWithScreenshot("Click");
     }
 
-    /**
-     * Opens a new instance of chrome
-     * @name Open Chrome
-     */
-    public void OpenChrome()
+public void ClickByText(String text)
     {
-        QuitCurrentBrowser();
+        String xPath = "//*[contains(text(), \"" + text + "\")]";
+        WebElement elem = getWebElement(By.xpath(xPath));
 
-        setDriver(CapabilityLoader.createChromeDriver());
+        if (elem == null) {
+            failStep("Click", "Click failed. Unable to locate object by text: " + text + " with xpath " + xPath);
+        }
+
+        elem.click();
+
+        passStepWithScreenshot("Click");
     }
 
-    /**
-     * Opens a new instance of chrome
-     * @name Open Firefox
-     */
-    public void OpenFirefox()
-    {
-        QuitCurrentBrowser();
-
-        setDriver(CapabilityLoader.createFirefoxDriver());
-    }
-
-    /**
-     * Closes the current browser
-     * @name Close Browser
-     */
-    public void QuitCurrentBrowser()
+public void QuitCurrentBrowser()
     {
         if (m_Driver != null) {
             try {
@@ -191,82 +205,60 @@ public class WebGeneralActions extends BasePage {
         }
     }
 
-    /**
-     * Opens a new connection to given SauceLabs US server via Appium.
-     * @name Connect SauceLabs (US Server)
-     */
-    public void ConnectSauceLabsUS(String username, String accessKey)
-    {
-        QuitCurrentBrowser();
-
-        setDriver(CapabilityLoader.createSauceLabsDriver(username, accessKey, "us"));
-    }
-
-    /**
-     * Opens a new connection to given SauceLabs EU server via Appium.
-     * @name Connect SauceLabs (EU Server)
-     */
-    public void ConnectSauceLabsEU(String username, String accessKey)
+public void ConnectSauceLabsEU(String username, String accessKey)
     {
         QuitCurrentBrowser();
 
         setDriver(CapabilityLoader.createSauceLabsDriver(username, accessKey, "eu"));
     }
 
-    /**
-     * Verifies that the current frame contains text.
-     * @name Assert Current Frame Contains
-     */
-    public void CurrentFrameShouldContain(String text)
+public void ConnectSauceLabsUS(String username, String accessKey)
     {
-        if (m_Driver.getPageSource().contains(text)) {
-            passStepWithScreenshot("Current Frame Contains '" + text + "'");
-        } else {
-            failStep("Current frame does not contain '" + text + "'");
-        }
+        QuitCurrentBrowser();
+
+        setDriver(CapabilityLoader.createSauceLabsDriver(username, accessKey, "us"));
     }
 
-    /**
-     * Verifies that the current frame does not contain text.
-     * @name Assert Current Frame Does Not Contain
-     */
-    public void CurrentFrameShouldNotContain(String text)
-    {
-        if (!m_Driver.getPageSource().contains(text)) {
-            passStepWithScreenshot("Current frame does not contain '" + text + "'");
-        } else {
-            failStep("Current frame contains '" + text + "'");
-        }
-    }
-
-    /**
-     * Deletes all cookies.
-     * @name Delete All Cookies
-     */
-    public void DeleteAllCookies()
+public void DeleteAllCookies()
     {
         m_Driver.manage().deleteAllCookies();
 
         passStep("All cookies deleted");
     }
 
-    /**
-     * Deletes the cookie matching name.
-     * @name Delete Cookie
-     */
-    public void DeleteCookie(String name)
+public void DeleteCookie(String name)
     {
         m_Driver.manage().deleteCookieNamed(name);
 
         passStep("Cookie '" + name + "' deleted");
     }
 
-    /**
-     * Drags the element identified by locator into the target element.
-     * The locator argument is the locator of the dragged element and the target is the locator of the target.
-     * @name Drag And Drop
-     */
-    public void DragAndDrop(String fromLocator, String targetLocator)
+public void DismissAlert()
+    {
+        try  {
+            m_Driver.switchTo().alert().dismiss();
+
+            passStepWithScreenshot("Dismissed alert");
+        }  catch (NoAlertPresentException Ex)  {
+            failStep("Alert is not present");
+        }
+    }
+
+public void DoubleClick(String objectLocator)
+    {
+        WebElement elem = getWebElement(getLocatorFromString(objectLocator));
+
+        if (elem == null) {
+            failStep("Double Click", "Double Click failed. Unable to locate object: " + objectLocator);
+        }
+
+        Actions act = new Actions(m_Driver);
+        act.doubleClick(elem).perform();
+
+        passStepWithScreenshot("Double Click");
+    }
+
+public void DragAndDrop(String fromLocator, String targetLocator)
     {
         WebElement fromElem = getWebElement(getLocatorFromString(fromLocator));
         if (fromElem == null) {
@@ -284,12 +276,7 @@ public class WebGeneralActions extends BasePage {
         passStepWithScreenshot("Drag And Drop");
     }
 
-    /**
-     * Drags the element identified with locator by xoffset/yoffset.
-     * The element will be moved by xPos and yPos, each of which is a negative or positive number specifying the offset.
-     * @name Drag And Drop By Offset
-     */
-    public void DragAndDropByOffset(String objectLocator, Integer xPos, Integer yPos)
+public void DragAndDropByOffset(String objectLocator, Integer xPos, Integer yPos)
     {
         WebElement elem = getWebElement(getLocatorFromString(objectLocator));
         if (elem == null) {
@@ -303,11 +290,7 @@ public class WebGeneralActions extends BasePage {
         passStepWithScreenshot("Drag And Drop By Offset");
     }
 
-    /**
-     * Verifies element identified by locator contains expected attribute value.
-     * @name Element Attribute Value Should Be
-     */
-    public void ElementAttributeValueShouldBe(String objectLocator, String elementAttribute, String attributeValue)
+public void ElementAttributeValueShouldBe(String objectLocator, String elementAttribute, String attributeValue)
     {
         WebElement elem = getWebElement(getLocatorFromString(objectLocator));
         if (elem == null) {
@@ -324,11 +307,7 @@ public class WebGeneralActions extends BasePage {
         }
     }
 
-    /**
-     * Verifies that element identified by locator is disabled.
-     * @name Element Should Be Disabled
-     */
-    public void ElementShouldBeDisabled(String objectLocator)
+public void ElementShouldBeDisabled(String objectLocator)
     {
         WebElement elem = getWebElement(getLocatorFromString(objectLocator));
         if (elem == null) {
@@ -342,11 +321,7 @@ public class WebGeneralActions extends BasePage {
         }
     }
 
-    /**
-     * Verifies that element identified by locator is enabled.
-     * @name Element Should Be Enabled
-     */
-    public void ElementShouldBeEnabled(String objectLocator)
+public void ElementShouldBeEnabled(String objectLocator)
     {
         WebElement elem = getWebElement(getLocatorFromString(objectLocator));
         if (elem == null) {
@@ -361,11 +336,7 @@ public class WebGeneralActions extends BasePage {
 
     }
 
-    /**
-     * Verifies that element identified by locator is focused.
-     * @name Element Should Be Focused
-     */
-    public void ElementShouldBeFocused(String objectLocator)
+public void ElementShouldBeFocused(String objectLocator)
     {
         WebElement elem = getWebElement(getLocatorFromString(objectLocator));
         if (elem == null) {
@@ -379,11 +350,7 @@ public class WebGeneralActions extends BasePage {
         }
     }
 
-    /**
-     * Verifies that the element identified by locator is visible.
-     * @name Element Should Be Visible
-     */
-    public void ElementShouldBeVisible(String objectLocator)
+public void ElementShouldBeVisible(String objectLocator)
     {
         WebElement elem = getWebElement(getLocatorFromString(objectLocator));
         if (elem == null) {
@@ -397,11 +364,7 @@ public class WebGeneralActions extends BasePage {
         }
     }
 
-    /**
-     * Verifies that element locator contains text expected.
-     * @name Element Should Contain
-     */
-    public void ElementShouldContain(String objectLocator, String message)
+public void ElementShouldContain(String objectLocator, String message)
     {
         WebElement elem = getWebElement(getLocatorFromString(objectLocator));
         if (elem == null) {
@@ -415,11 +378,7 @@ public class WebGeneralActions extends BasePage {
         }
     }
 
-    /**
-     * Verifies that the element identified by locator is NOT visible.
-     * @name Element Should Not Be Visible
-     */
-    public void ElementShouldNotBeVisible(String objectLocator)
+public void ElementShouldNotBeVisible(String objectLocator)
     {
         WebElement elem = getWebElement(getLocatorFromString(objectLocator));
         if (elem == null) {
@@ -433,11 +392,7 @@ public class WebGeneralActions extends BasePage {
         }
     }
 
-    /**
-     * Verifies that element locator does not contain text expected.
-     * @name Element Should Not Contain
-     */
-    public void ElementShouldNotContain(String objectLocator, String message)
+public void ElementShouldNotContain(String objectLocator, String message)
     {
         WebElement elem = getWebElement(getLocatorFromString(objectLocator));
         if (elem == null) {
@@ -451,11 +406,7 @@ public class WebGeneralActions extends BasePage {
         }
     }
 
-    /**
-     * Verifies that element locator contains exact the text expected.
-     * @name Element Text Should Be
-     */
-    public void ElementTextShouldBe(String objectLocator, String text)
+public void ElementTextShouldBe(String objectLocator, String text)
     {
         WebElement elem = getWebElement(getLocatorFromString(objectLocator));
         if (elem == null) {
@@ -469,11 +420,7 @@ public class WebGeneralActions extends BasePage {
         }
     }
 
-    /**
-     * Verifies that element locator does not contain exact the text not_expected.
-     * @name Element Text Should Not Be
-     */
-    public void ElementTextShouldNotBe(String objectLocator, String text)
+public void ElementTextShouldNotBe(String objectLocator, String text)
     {
         WebElement elem = getWebElement(getLocatorFromString(objectLocator));
         if (elem == null) {
@@ -487,20 +434,25 @@ public class WebGeneralActions extends BasePage {
         }
     }
 
-    /**
-     * Executes the given JavaScript code with possible arguments.
-     * @name Execute Javascript
-     */
-    public void ExecuteJavascript(String javaScript)
+public void EnterText(String objectLocator, String text)
+    {
+        WebElement elem = getWebElement(getLocatorFromString(objectLocator));
+
+        if (elem == null) {
+            failStep("EnterText", "EnterText failed. Unable to locate object: " + objectLocator);
+        }
+
+        elem.sendKeys(text);
+
+        passStepWithScreenshot("EnterText " + text);
+    }
+
+public void ExecuteJavascript(String javaScript)
     {
         ((JavascriptExecutor)m_Driver).executeScript(javaScript);
     }
 
-    /**
-     * Verifies that frame identified by locator contains text.
-     * @name Frame Should Contain
-     */
-    public void FrameShouldContain(String objectLocator, String text)
+public void FrameShouldContain(String objectLocator, String text)
     {
         WebElement elem = getWebElement(getLocatorFromString(objectLocator));
         if (elem == null) {
@@ -514,29 +466,12 @@ public class WebGeneralActions extends BasePage {
         }
     }
 
-    /**
-     * Return the desired capability value by desired capability name
-     * @name Get Capability
-     */
-    public String GetCapability(String capability)
+public String GetCapability(String capability)
     {
         return CapabilityLoader.getCapability(capability);
     }
 
-    /**
-     * Add a desired capability value by desired capability name
-     * @name Add Capability
-     */
-    public void AddCapability(String capabilityName, String value)
-    {
-        CapabilityLoader.addCapability(capabilityName, value);
-    }
-
-    /**
-     * Returns the value of attribute from the element locator.
-     * @name Get Element Attribute
-     */
-    public String GetElementAttribute(String objectLocator, String attribute)
+public String GetElementAttribute(String objectLocator, String attribute)
     {
         WebElement elem = getWebElement(getLocatorFromString(objectLocator));
         if (elem == null) {
@@ -546,11 +481,7 @@ public class WebGeneralActions extends BasePage {
         return elem.getAttribute(attribute);
     }
 
-    /**
-     * Returns the text value of the element identified by locator.
-     * @name Get Text
-     */
-    public String GetText(String objectLocator)
+public String GetText(String objectLocator)
     {
         WebElement elem = getWebElement(getLocatorFromString(objectLocator));
         if (elem == null) {
@@ -560,20 +491,12 @@ public class WebGeneralActions extends BasePage {
         return elem.getText();
     }
 
-    /**
-     * Returns the title of the current page.
-     * @name Get Title
-     */
-    public String GetTitle()
+public String GetTitle()
     {
         return m_Driver.getTitle();
     }
 
-    /**
-     * Returns the value attribute of the element identified by locator.
-     * @name Get Value
-     */
-    public String GetValue(String objectLocator)
+public String GetValue(String objectLocator)
     {
         WebElement elem = getWebElement(getLocatorFromString(objectLocator));
         if (elem == null) {
@@ -583,50 +506,12 @@ public class WebGeneralActions extends BasePage {
         return elem.getText();
     }
 
-    /**
-     * Simulates the user clicking the back button on their browser.
-     * @name Go Back
-     */
-    public void GoBack()
+public void GoBack()
     {
         m_Driver.navigate().back();
     }
 
-    /**
-     * Accepts the alert.
-     * @name Accept Alert
-     */
-    public void AcceptAlert()
-    {
-        try  {
-            m_Driver.switchTo().alert().accept();
-
-            passStepWithScreenshot("Accepted alert");
-        }  catch (NoAlertPresentException Ex)  {
-            failStep("Alert is not present");
-        }
-    }
-
-    /**
-     * Dismisses the alert.
-     * @name Dismiss Alert
-     */
-    public void DismissAlert()
-    {
-        try  {
-            m_Driver.switchTo().alert().dismiss();
-
-            passStepWithScreenshot("Dismissed alert");
-        }  catch (NoAlertPresentException Ex)  {
-            failStep("Alert is not present");
-        }
-    }
-
-    /**
-     * Types the given text into an input field in an alert.
-     * @name Input Text Into Alert
-     */
-    public void InputTextIntoAlert(String text)
+public void InputTextIntoAlert(String text)
     {
         try  {
             m_Driver.switchTo().alert().sendKeys(text);
@@ -637,11 +522,14 @@ public class WebGeneralActions extends BasePage {
         }
     }
 
-    /**
-     * Simulates pressing the left mouse button on the element locator.
-     * @name Mouse Down
-     */
-    public void MouseDown(String objectLocator)
+public void MaximiseWindow()
+    {
+        m_Driver.manage().window().maximize();
+
+        passStepWithScreenshot("Maximise Window");
+    }
+
+public void MouseDown(String objectLocator)
     {
         WebElement elem = getWebElement(getLocatorFromString(objectLocator));
         if (elem == null) {
@@ -655,11 +543,7 @@ public class WebGeneralActions extends BasePage {
         passStepWithScreenshot("Mouse Down");
     }
 
-    /**
-     * Simulates moving the mouse away from the element locator.
-     * @name Mouse Out
-     */
-    public void MouseOut(String objectLocator)
+public void MouseOut(String objectLocator)
     {
 // TODO
         WebElement elem = getWebElement(getLocatorFromString(objectLocator));
@@ -676,11 +560,7 @@ public class WebGeneralActions extends BasePage {
 
     }
 
-    /**
-     * Simulates hovering the mouse over the element locator.
-     * @name Mouse Over
-     */
-    public void MouseOver(String objectLocator)
+public void MouseOver(String objectLocator)
     {
         WebElement elem = getWebElement(getLocatorFromString(objectLocator));
         if (elem == null) {
@@ -695,11 +575,7 @@ public class WebGeneralActions extends BasePage {
 
     }
 
-    /**
-     * Simulates releasing the left mouse button on the element locator.
-     * @name Mouse Up
-     */
-    public void MouseUp(String objectLocator)
+public void MouseUp(String objectLocator)
     {
         WebElement elem = getWebElement(getLocatorFromString(objectLocator));
         if (elem == null) {
@@ -713,11 +589,23 @@ public class WebGeneralActions extends BasePage {
         passStepWithScreenshot("Mouse Up");
     }
 
-    /**
-     * Opens the context menu on the element identified by locator.
-     * @name Open Context Menu
-     */
-    public void OpenContextMenu(String objectLocator)
+public void NewWindow()
+    {
+        ((JavascriptExecutor) m_Driver).executeScript("window.open()");
+        ArrayList<String> tabs = new ArrayList<String>(m_Driver.getWindowHandles());
+        m_Driver.switchTo().window(tabs.get(1));
+
+        passStepWithScreenshot("New Window");
+    }
+
+public void OpenChrome()
+    {
+        QuitCurrentBrowser();
+
+        setDriver(CapabilityLoader.createChromeDriver());
+    }
+
+public void OpenContextMenu(String objectLocator)
     {
         WebElement elem = getWebElement(getLocatorFromString(objectLocator));
         if (elem == null) {
@@ -731,24 +619,21 @@ public class WebGeneralActions extends BasePage {
         passStepWithScreenshot("Open context menu");
     }
 
-    /**
-     * Verifies that current page contains text.
-     * @name Page Should Contain Text
-     */
-    public void PageShouldContainText(String text)
+public void OpenFirefox()
     {
-        if (m_Driver.getPageSource().contains(text)) {
-            passStepWithScreenshot("Page contains text '" + text + "'");
-        } else {
-            failStep("Page does not contains text '" + text + "'");
-        }
+        QuitCurrentBrowser();
+
+        setDriver(CapabilityLoader.createFirefoxDriver());
     }
 
-    /**
-     * Verifies that element locator is found on the current page.
-     * @name Page Should Contain Element
-     */
-    public void PageShouldContainElement(String objectLocator)
+public void OpenURL(String url)
+    {
+        m_Driver.get(url);
+
+        passStepWithScreenshot("Go to URL - " + url);
+    }
+
+public void PageShouldContainElement(String objectLocator)
     {
         WebElement elem = getWebElement(getLocatorFromString(objectLocator));
         if (elem == null) {
@@ -758,24 +643,16 @@ public class WebGeneralActions extends BasePage {
         passStepWithScreenshot("Page contains element");
     }
 
-    /**
-     * Verifies that current page does not contain text.
-     * @name Page Should Not Contain Text
-     */
-    public void PageShouldNotContainText(String text)
+public void PageShouldContainText(String text)
     {
         if (m_Driver.getPageSource().contains(text)) {
-            failStep("Page does contains text '" + text + "'");
+            passStepWithScreenshot("Page contains text '" + text + "'");
         } else {
-            passStepWithScreenshot("Page does not contain text '" + text + "'");
+            failStep("Page does not contains text '" + text + "'");
         }
     }
 
-    /**
-     * Verifies that element locator is not found on the current page.
-     * @name Page Should Not Contain Element
-     */
-    public void PageShouldNotContainElement(String objectLocator)
+public void PageShouldNotContainElement(String objectLocator)
     {
         WebElement elem = getWebElement(getLocatorFromString(objectLocator));
         if (elem == null) {
@@ -785,11 +662,16 @@ public class WebGeneralActions extends BasePage {
         failStep("Page contains element '" + objectLocator + "'");
     }
 
-    /**
-     * Verifies radio button group group_name is set to value.
-     * @name Radio Button Should Be Set To
-     */
-    public void RadioButtonShouldBeSetTo(String groupName, String value)
+public void PageShouldNotContainText(String text)
+    {
+        if (m_Driver.getPageSource().contains(text)) {
+            failStep("Page does contains text '" + text + "'");
+        } else {
+            passStepWithScreenshot("Page does not contain text '" + text + "'");
+        }
+    }
+
+public void RadioButtonShouldBeSetTo(String groupName, String value)
     {
         By radioGroup = By.xpath("//input[@type='radio' and @name='" + groupName + "']");
 
@@ -814,11 +696,7 @@ public class WebGeneralActions extends BasePage {
         }
     }
 
-    /**
-     * Verifies radio button group group_name has no selection.
-     * @name Radio Button Should Not Be Selected
-     */
-    public void RadioButtonShouldNotBeSelected(String groupName, String value)
+public void RadioButtonShouldNotBeSelected(String groupName, String value)
     {
         By radioGroup = By.xpath("//input[@type='radio' and @name='" + groupName + "']");
 
@@ -843,20 +721,12 @@ public class WebGeneralActions extends BasePage {
         }
     }
 
-    /**
-     * Simulates user reloading page.
-     * @name Reload Page
-     */
-    public void ReloadPage()
+public void ReloadPage()
     {
         m_Driver.navigate().refresh();
     }
 
-    /**
-     * Scrolls the element identified by locator into view.
-     * @name Scroll Element Into View
-     */
-    public void ScrollElementIntoView(String objectLocator) throws InterruptedException {
+public void ScrollElementIntoView(String objectLocator) throws InterruptedException {
         WebElement elem = getWebElement(getLocatorFromString(objectLocator));
         if (elem == null) {
             failStep("Scroll Element Into View", "Unable to locate object: " + objectLocator);
@@ -868,11 +738,7 @@ public class WebGeneralActions extends BasePage {
         passStepWithScreenshot("Scroll Element Into View");
     }
 
-    /**
-     * Selects all options from multi-selection list locator.
-     * @name Select All From List
-     */
-    public void SelectAllFromList(String objectLocator)
+public void SelectAllFromList(String objectLocator)
     {
         WebElement elem = getWebElement(getLocatorFromString(objectLocator));
         if (elem == null) {
@@ -889,12 +755,7 @@ public class WebGeneralActions extends BasePage {
         passStepWithScreenshot("Select All From List");
     }
 
-    /**
-     * Selects the checkbox identified by locator.
-     * Does nothing if checkbox is already selected.
-     * @name Select Checkbox
-     */
-    public void SelectCheckbox(String objectLocator)
+public void SelectCheckbox(String objectLocator)
     {
         WebElement elem = getWebElement(getLocatorFromString(objectLocator));
         if (elem == null) {
@@ -907,11 +768,7 @@ public class WebGeneralActions extends BasePage {
         passStepWithScreenshot("Select Checkbox");
     }
 
-    /**
-     * Selects options from selection list locator by indexes.
-     * @name Select From List By Index
-     */
-    public void SelectFromListByIndex(String objectLocator, Integer index)
+public void SelectFromListByIndex(String objectLocator, Integer index)
     {
         WebElement elem = getWebElement(getLocatorFromString(objectLocator));
         if (elem == null) {
@@ -924,11 +781,7 @@ public class WebGeneralActions extends BasePage {
         passStepWithScreenshot("Select From List By Index");
     }
 
-    /**
-     * Selects options from selection list locator by labels.
-     * @name Select From List By Label
-     */
-    public void SelectFromListByLabel(String objectLocator, String label)
+public void SelectFromListByLabel(String objectLocator, String label)
     {
         WebElement elem = getWebElement(getLocatorFromString(objectLocator));
         if (elem == null) {
@@ -941,11 +794,7 @@ public class WebGeneralActions extends BasePage {
         passStepWithScreenshot("Select From List By Label");
     }
 
-    /**
-     * Selects options from selection list locator by values.
-     * @name Select From List By Value
-     */
-    public void SelectFromListByValue(String objectLocator, String value)
+public void SelectFromListByValue(String objectLocator, String value)
     {
         WebElement elem = getWebElement(getLocatorFromString(objectLocator));
         if (elem == null) {
@@ -958,11 +807,7 @@ public class WebGeneralActions extends BasePage {
         passStepWithScreenshot("Select From List By Value");
     }
 
-    /**
-     * Sets the radio button group group_name to value.
-     * @name Select Radio Button
-     */
-    public void SelectRadioButton(String groupName, String value)
+public void SelectRadioButton(String groupName, String value)
     {
         By radioGroup = By.xpath("//input[@type='radio' and @name='" + groupName + "']");
 
@@ -987,11 +832,19 @@ public class WebGeneralActions extends BasePage {
         }
     }
 
-    /**
-     * Submits a form identified by locator.
-     * @name Submit Form
-     */
-    public void SubmitForm(String objectLocator)
+public void SetBrowserType(String platformName)
+    {
+        AddCapability("browserName", platformName);
+    }
+
+public void SetWindowSize(int width, int height)
+    {
+        m_Driver.manage().window().setSize(new Dimension(width, height));
+
+        passStepWithScreenshot("Set Window Size");
+    }
+
+public void SubmitForm(String objectLocator)
     {
         WebElement elem = getWebElement(getLocatorFromString(objectLocator));
         if (elem == null) {
@@ -1003,12 +856,15 @@ public class WebGeneralActions extends BasePage {
         passStepWithScreenshot("Submit Form");
     }
 
+public void SwitchTab(int tabIndex)
+    {
+        ArrayList<String> tabs = new ArrayList<String>(m_Driver.getWindowHandles());
+        m_Driver.switchTo().window(tabs.get(tabIndex));
 
-    /**
-     * Verifies that the current page title equals title.
-     * @name Title Should Be
-     */
-    public void TitleShouldBe(String value)
+        passStepWithScreenshot("Switch tab with index " + tabIndex);
+    }
+
+public void TitleShouldBe(String value)
     {
         if (m_Driver.getTitle().equals(value)) {
             passStepWithScreenshot("Title is equal to '" + value + "'");
@@ -1017,11 +873,7 @@ public class WebGeneralActions extends BasePage {
         }
     }
 
-    /**
-     * Unselects all options from multi-selection list locator.
-     * @name Unselect All From List
-     */
-    public void UnselectAllFromList(String objectLocator)
+public void UnselectAllFromList(String objectLocator)
     {
         WebElement elem = getWebElement(getLocatorFromString(objectLocator));
         if (elem == null) {
@@ -1034,11 +886,7 @@ public class WebGeneralActions extends BasePage {
         passStepWithScreenshot("Unselect All From List");
     }
 
-    /**
-     * Removes the selection of checkbox identified by locator.
-     * @name Unselect Checkbox
-     */
-    public void UnselectCheckbox(String objectLocator)
+public void UnselectCheckbox(String objectLocator)
     {
         WebElement elem = getWebElement(getLocatorFromString(objectLocator));
         if (elem == null) {
@@ -1051,11 +899,7 @@ public class WebGeneralActions extends BasePage {
         passStepWithScreenshot("Unselect Checkbox");
     }
 
-    /**
-     * Unselects options from selection list locator by indexes.
-     * @name Unselect From List By Index
-     */
-    public void UnselectFromListByIndex(String objectLocator, Integer index)
+public void UnselectFromListByIndex(String objectLocator, Integer index)
     {
         WebElement elem = getWebElement(getLocatorFromString(objectLocator));
         if (elem == null) {
@@ -1068,11 +912,7 @@ public class WebGeneralActions extends BasePage {
         passStepWithScreenshot("Unselect from list");
     }
 
-    /**
-     * Unselects options from selection list locator by labels.
-     * @name Unselect From List By Label
-     */
-    public void UnselectFromListByLabel(String objectLocator, String label)
+public void UnselectFromListByLabel(String objectLocator, String label)
     {
         WebElement elem = getWebElement(getLocatorFromString(objectLocator));
         if (elem == null) {
@@ -1085,11 +925,7 @@ public class WebGeneralActions extends BasePage {
         passStepWithScreenshot("Unselect from list");
     }
 
-    /**
-     * Unselects options from selection list locator by values.
-     * @name Unselect From List By Value
-     */
-    public void UnselectFromListByValue(String objectLocator, String value)
+public void UnselectFromListByValue(String objectLocator, String value)
     {
         WebElement elem = getWebElement(getLocatorFromString(objectLocator));
         if (elem == null) {
@@ -1102,11 +938,7 @@ public class WebGeneralActions extends BasePage {
         passStepWithScreenshot("Unselect from list");
     }
 
-    /**
-     * Waits until the element locator is enabled.
-     * @name Wait Until Element Is Enabled
-     */
-    public void WaitUntilElementIsEnabled(String objectLocator)
+public void WaitUntilElementIsEnabled(String objectLocator)
     {
         WebElement elem = getWebElement(getLocatorFromString(objectLocator));
         if (elem == null) {
@@ -1124,11 +956,7 @@ public class WebGeneralActions extends BasePage {
         passStepWithScreenshot("Wait until element is enabled");
     }
 
-    /**
-     * Waits until the element locator is not visible.
-     * @name Wait Until Element Is Not Visible
-     */
-    public void WaitUntilElementIsNotVisible(String objectLocator)
+public void WaitUntilElementIsNotVisible(String objectLocator)
     {
         WebElement elem = getWebElement(getLocatorFromString(objectLocator));
         if (elem == null) {
@@ -1146,178 +974,18 @@ public class WebGeneralActions extends BasePage {
         passStepWithScreenshot("Wait until element is not visible");
     }
 
-    /**
-     * Waits until the element locator is visible.
-     * @name Wait Until Element Is Visible
-     */
-    public void WaitUntilElementIsVisible(String objectLocator)
+public void WaitUntilElementIsVisible(String objectLocator)
     {
         waitForVisible(getLocatorFromString(objectLocator), 10);
 
         passStepWithScreenshot("Wait until element '" + objectLocator + "' is visible");
     }
 
-
-    /**
-     * Waits until the element locator appears on the current page.
-     * @name Wait Until Page Contains Element
-     */
-    public void WaitUntilPageContainsElement(String objectLocator)
+public void WaitUntilPageContainsElement(String objectLocator)
     {
         waitForLoaded(getLocatorFromString(objectLocator), 10);
 
         passStepWithScreenshot("Wait until page contains element '" + objectLocator + "'");
-    }
-
-    /**
-     * Navigates the current browser window to the provided url.
-     * @name Open URL
-     */
-    public void OpenURL(String url)
-    {
-        m_Driver.get(url);
-
-        passStepWithScreenshot("Go to URL - " + url);
-    }
-
-	/**
-     * Switch tab by index. Index 0 is always the main window.
-     * @name Switch tab
-     */
-    public void SwitchTab(int tabIndex)
-    {
-        ArrayList<String> tabs = new ArrayList<String>(m_Driver.getWindowHandles());
-        m_Driver.switchTo().window(tabs.get(tabIndex));
-
-        passStepWithScreenshot("Switch tab with index " + tabIndex);
-    }
-	
-	/**
-     * Opens a new browser window / tab
-     * @name New Window
-     */
-    public void NewWindow()
-    {
-        ((JavascriptExecutor) m_Driver).executeScript("window.open()");
-        ArrayList<String> tabs = new ArrayList<String>(m_Driver.getWindowHandles());
-        m_Driver.switchTo().window(tabs.get(1));
-
-        passStepWithScreenshot("New Window");
-    }
-
-    /**
-     * Maximise browser window
-     * @name Maximise Window
-     */
-    public void MaximiseWindow()
-    {
-        m_Driver.manage().window().maximize();
-
-        passStepWithScreenshot("Maximise Window");
-    }
-
-    /**
-     * Set browser window size
-     * @name Set Window Size
-     */
-    public void SetWindowSize(int width, int height)
-    {
-        m_Driver.manage().window().setSize(new Dimension(width, height));
-
-        passStepWithScreenshot("Set Window Size");
-    }
-	
-    /**
-     * Click the element identified by locator.
-     * @name Click
-     */
-    public void Click(String objectLocator)
-    {
-        WebElement elem = getWebElement(getLocatorFromString(objectLocator));
-
-        if (elem == null) {
-            failStep("Click", "Click failed. Unable to locate object: " + objectLocator);
-        }
-
-        elem.click();
-
-        passStepWithScreenshot("Click");
-    }
-
-    /**
-     * Click the element identified by element text.
-     * @name Click By Text
-     */
-    public void ClickByText(String text)
-    {
-        String xPath = "//*[contains(text(), \"" + text + "\")]";
-        WebElement elem = getWebElement(By.xpath(xPath));
-
-        if (elem == null) {
-            failStep("Click", "Click failed. Unable to locate object by text: " + text + " with xpath " + xPath);
-        }
-
-        elem.click();
-
-        passStepWithScreenshot("Click");
-    }
-
-    /**
-     * Types the given text into the element identified by locator.
-     * @name Enter Text
-     */
-    public void EnterText(String objectLocator, String text)
-    {
-        WebElement elem = getWebElement(getLocatorFromString(objectLocator));
-
-        if (elem == null) {
-            failStep("EnterText", "EnterText failed. Unable to locate object: " + objectLocator);
-        }
-
-        elem.sendKeys(text);
-
-        passStepWithScreenshot("EnterText " + text);
-    }
-
-    /**
-     * Double clicks the element identified by locator.
-     * @name Double Click
-     */
-    public void DoubleClick(String objectLocator)
-    {
-        WebElement elem = getWebElement(getLocatorFromString(objectLocator));
-
-        if (elem == null) {
-            failStep("Double Click", "Double Click failed. Unable to locate object: " + objectLocator);
-        }
-
-        Actions act = new Actions(m_Driver);
-        act.doubleClick(elem).perform();
-
-        passStepWithScreenshot("Double Click");
-    }
-
-    private By getLocatorFromString(String objectLocator)
-    {
-        if (objectLocator.startsWith("id:")) {
-            return By.id(objectLocator.replace("id:", ""));
-        } else if (objectLocator.startsWith("name:")) {
-            return By.name(objectLocator.replace("name:", ""));
-        } else if (objectLocator.startsWith("class:")) {
-            return By.className(objectLocator.replace("class:", ""));
-        }  else if (objectLocator.startsWith("tagname:")) {
-            return By.tagName(objectLocator.replace("tagname:", ""));
-        } else if (objectLocator.startsWith("xpath:")) {
-            return By.xpath(objectLocator.replace("xpath:", ""));
-        } else if (objectLocator.startsWith("css:")) {
-            return By.cssSelector(objectLocator.replace("css:", ""));
-        } else if (objectLocator.startsWith("linktext:")) {
-            return By.linkText(objectLocator.replace("linktext:", ""));
-        } else if (objectLocator.startsWith("text:")) {
-            return By.xpath("//*[text()=\"" + objectLocator.replace("text:", "") + "\"]");
-        } else {
-            return By.xpath(objectLocator);
-        }
     }
 
 }
